@@ -26,12 +26,12 @@ const useSearch = () => {
 }
 
 function App() {
-  const { movies: mappedMovies } = useMovies()
   const { search, updateSearch, error } = useSearch()
+  const { movies, getMovies, loading } = useMovies({ search })
 
   const handleSubmit = (event) => {
     event.preventDefault()
-    console.log(search)
+    getMovies(search)
   }
 
   const handleChange = (event) => {
@@ -50,7 +50,10 @@ function App() {
       </header>
 
       <main>
-        <Movies movies={mappedMovies} />
+        {
+          loading && <p>Loading...</p>
+        }
+        <Movies movies={movies} />
       </main>
     </div>
   )
