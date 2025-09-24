@@ -5,6 +5,8 @@ import { products as initialProducts } from './mocks/products'
 import { useState } from 'react'
 import { IS_DEVELOPMENT } from './config'
 import { useFilters } from './hooks/useFilters'
+import { Cart } from './components/Cart'
+import { CartProvider } from './contexts/cart'
 
 function App() {
   const [products] = useState(initialProducts)
@@ -14,9 +16,12 @@ function App() {
 
   return (
     <>
-      <Header />
-      <Products products={filteredProducts} />
-      {IS_DEVELOPMENT && <Footer />} {/* Solo se muestra en modo desarrollo */}
+      <CartProvider>
+        <Header />
+        <Cart />
+        <Products products={filteredProducts} />
+        {IS_DEVELOPMENT && <Footer />} {/* Solo se muestra en modo desarrollo */}
+      </CartProvider>
     </>
   )
 }
