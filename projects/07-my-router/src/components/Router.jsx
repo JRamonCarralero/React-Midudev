@@ -1,9 +1,9 @@
-import { useEffect, useState } from "react"
+import { useEffect, useState, Children } from "react"
 import { EVENTS } from "../utils/consts"
 import { match } from "path-to-regexp"
 
 // eslint-disable-next-line no-unused-vars
-export function Router({ routes = [], defaultComponent: DefaultComponent = () => <h1>404</h1> }) {
+export function Router({ children, routes = [], defaultComponent: DefaultComponent = () => <h1>404</h1> }) {
   const [currentPath, setCurrentPath] = useState(window.location.pathname)
 
   useEffect(() => {
@@ -20,7 +20,19 @@ export function Router({ routes = [], defaultComponent: DefaultComponent = () =>
 
   let routeParams = {}
 
-  const Page = routes.find(route => {
+  const routesFromChildren = Children.map(children, ({ props, type }) => {
+    const { name } = type
+    const isRoute = name === 'Route'
+    return isRoute ? props : null
+  })
+
+  console.log(routesFromChildren)
+
+  const routesToUse = routes.concat(routesFromChildren)
+
+  console.log(routesToUse)
+
+  const Page = routesToUse.find(route => {
     if (route.path === currentPath) return true
 
     // usamos path-to-regex para las rutas dinámicas
