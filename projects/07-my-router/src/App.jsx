@@ -1,28 +1,12 @@
 import './App.css'
-import { useEffect, useState } from 'react'
-import HomePage from './pages/Home'
-import AboutPage from './pages/About'
-import { EVENTS } from './utils/consts'
+import { Router } from './components/Router'
+import { routes } from './utils/routes'
+import Page404 from './pages/404'
 
 function App() {
-  const [currentPath, setCurrentPath] = useState(window.location.pathname)
-
-  useEffect(() => {
-    const onLocationChange = () => {
-      setCurrentPath(window.location.pathname)
-    }
-    window.addEventListener(EVENTS.PUSHSTATE, onLocationChange)
-    window.addEventListener(EVENTS.POPSTATE, onLocationChange)
-    return () => {
-      window.removeEventListener(EVENTS.PUSHSTATE, onLocationChange)
-      window.removeEventListener(EVENTS.POPSTATE, onLocationChange)
-    }
-  }, [])
-
   return (
     <main>
-      {currentPath === '/' && <HomePage />}
-      {currentPath === '/about' && <AboutPage />}
+      <Router routes={routes} defaultComponent={Page404} />
     </main>
     
   )
