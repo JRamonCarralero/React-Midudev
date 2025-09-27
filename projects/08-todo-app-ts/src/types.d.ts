@@ -8,3 +8,5 @@ export type TodoId = Pick<Todo, 'id'>
 export type TodoTitle = Pick<Todo, 'title'>
 
 export type ListOfTodos = Todo[]
+
+export type FilterValue = typeof TODO_FILTERS[keyof typeof TODO_FILTERS]
