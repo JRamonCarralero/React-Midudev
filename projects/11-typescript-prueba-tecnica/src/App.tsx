@@ -1,12 +1,12 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import './App.css'
 import { UsersList } from './components/UserList'
-import { type User } from './types'
+import { SortBy, type User } from './types.d'
 
 function App() {
   const [users, setUsers] = useState<User[]>([])
   const [showColors, setShowColors] = useState(false)
-  const [sortByCountry, setSortByCountry] = useState(false)
+  const [sorting, setSorting] = useState<SortBy>(SortBy.NONE)
   const [filterCountry, setFilterCountry] = useState<string | null>(null)
 
   const originalUsers = useRef<User[]>([])
@@ -16,7 +16,8 @@ function App() {
   }
 
   const toggleSortByCountry = () => {
-    setSortByCountry(prevState => !prevState)
+    const newSortingValue = sorting === SortBy.NONE ? SortBy.COUNTRY : SortBy.NONE
+    setSorting(newSortingValue)
   }
 
   const handleDelete = (email: string) => {
@@ -27,6 +28,10 @@ function App() {
   const handleReset = () => {
     setUsers(originalUsers.current)
   } 
+
+  const handleChangeSort = (sort: SortBy) => {
+    setSorting(sort)
+  }
 
   useEffect(() => {
     fetch('https://randomuser.me/api/?results=100')
@@ -47,10 +52,19 @@ function App() {
   }, [users, filterCountry])
 
   const sortedUsers = useMemo(() => {
-    return sortByCountry 
-      ? filteredUsers.toSorted((a, b) => a.location.country.localeCompare(b.location.country)) 
-      : filteredUsers
-  }, [filteredUsers, sortByCountry])
+    if (sorting === SortBy.NONE) return filteredUsers
+
+    const compareProperties: Record<string, (user: User) => string> = {
+      [SortBy.COUNTRY]: user => user.location.country,
+      [SortBy.NAME]: user => user.name.first,
+      [SortBy.LAST]: user => user.name.last
+    }
+
+    return filteredUsers.toSorted((a, b) => {
+      const extractProperty = compareProperties[sorting]
+      return extractProperty(a).localeCompare(extractProperty(b))
+    })
+  }, [filteredUsers, sorting])
 
   return (
     <div className='App'>
@@ -60,14 +74,14 @@ function App() {
           Colorear filas
         </button>
         <button onClick={toggleSortByCountry}>
-          { sortByCountry ? 'No ordenar por países' : 'Ordenar por país' }
+          { sorting === SortBy.COUNTRY ? 'No ordenar por países' : 'Ordenar por país' }
         </button>
         <button onClick={handleReset}>
           Resetear
         </button>
         <input placeholder='Filtra por país' onChange={(e) => setFilterCountry(e.target.value)} />
       </header>
-      <UsersList showColors={showColors} onDelete={handleDelete} users={sortedUsers} />
+      <UsersList changeSorting={handleChangeSort} showColors={showColors} onDelete={handleDelete} users={sortedUsers} />
     </div>
   )
 }
