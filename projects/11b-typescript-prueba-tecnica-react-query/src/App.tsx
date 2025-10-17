@@ -1,15 +1,15 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useMemo, useState } from 'react'
 import './App.css'
 import { UsersList } from './components/UserList'
 import { SortBy, type User } from './types.d'
+import { useUsers } from './hooks/useUsers'
 
 function App() {
-  const [users, setUsers] = useState<User[]>([])
+  const { isLoading, isError, refetch, fetchNextPage, hasNextPage, users } = useUsers()
+
   const [showColors, setShowColors] = useState(false)
   const [sorting, setSorting] = useState<SortBy>(SortBy.NONE)
   const [filterCountry, setFilterCountry] = useState<string | null>(null)
-
-  const originalUsers = useRef<User[]>([])
 
   const toggleColors = () => {
     setShowColors(!showColors)
@@ -21,31 +21,21 @@ function App() {
   }
 
   const handleDelete = (email: string) => {
-    const filteredUsers = users.filter(user => user.email !== email)
-    setUsers(filteredUsers)        
+    console.log(email)
+    //const filteredUsers = users.filter(user => user.email !== email)
   }
 
   const handleReset = () => {
-    setUsers(originalUsers.current)
+    void refetch()
   } 
 
   const handleChangeSort = (sort: SortBy) => {
     setSorting(sort)
   }
 
-  useEffect(() => {
-    fetch('https://randomuser.me/api/?results=100')
-      .then(res => res.json())
-      .then(data => {
-        setUsers(data.results)
-        originalUsers.current = data.results
-      })
-      .catch(err => console.log(err))
-  }, [])
-
   const filteredUsers = useMemo(() => {
     return filterCountry !== null && filterCountry.length > 0 
-      ? users.filter(user => {
+      ? users?.filter(user => {
         return user.location.country.toLocaleLowerCase().includes(filterCountry.toLocaleLowerCase())
       }) 
       : users
@@ -60,7 +50,7 @@ function App() {
       [SortBy.LAST]: user => user.name.last
     }
 
-    return filteredUsers.toSorted((a, b) => {
+    return filteredUsers?.toSorted((a, b) => {
       const extractProperty = compareProperties[sorting]
       return extractProperty(a).localeCompare(extractProperty(b))
     })
@@ -81,7 +71,19 @@ function App() {
         </button>
         <input placeholder='Filtra por país' onChange={(e) => setFilterCountry(e.target.value)} />
       </header>
-      <UsersList changeSorting={handleChangeSort} showColors={showColors} onDelete={handleDelete} users={sortedUsers} />
+      <main>
+        { users && users?.length > 0 && <UsersList changeSorting={handleChangeSort} showColors={showColors} onDelete={handleDelete} users={sortedUsers} />}
+
+        {isLoading && <h2>Cargando...</h2>}
+
+        {!isLoading && isError && <h2>Ha ocurrido un error</h2>}
+
+        {!isLoading && !isError && users?.length === 0 && <h2>No hay usuarios</h2>}
+
+        {!isLoading && !isError && users && users?.length > 0 && hasNextPage && <button onClick={() => void fetchNextPage()}>Cargar más resultados</button>}
+
+        {!hasNextPage && <h2>No hay más resultados</h2>}
+      </main>
     </div>
   )
 }
