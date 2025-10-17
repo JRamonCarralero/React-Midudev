@@ -22,7 +22,7 @@ function App() {
 
   const handleDelete = (email: string) => {
     console.log(email)
-    //const filteredUsers = users.filter(user => user.email !== email)
+    // ToDo - Implementar la eliminación
   }
 
   const handleReset = () => {
